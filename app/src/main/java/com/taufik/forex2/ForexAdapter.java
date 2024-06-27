@@ -38,8 +38,13 @@ public class ForexAdapter extends RecyclerView.Adapter<ForexViewHolder> {
             holder.kodeTextView.setText(kode);
 
             double kurs = _rates.getDouble(kode);
+            double USD = _rates.getDouble("USD");
+            double IDR = _rates.getDouble("IDR");
+
+            double base = USD/kurs*IDR;
+
             DecimalFormat decimalFormat = new DecimalFormat("###,##0.##");
-            String kurs_2 = decimalFormat.format(kurs);
+            String kurs_2 = decimalFormat.format(base);
             holder.kursTextView.setText(kurs_2);
         } catch (JSONException e) {
             Log.e("*tw*", e.getMessage());

@@ -6,18 +6,19 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.os.Bundle;
-import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import cz.msebera.android.httpclient.Header;
 
@@ -25,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
 
     private SwipeRefreshLayout _swipeRefreshLayout1;
     private RecyclerView _recyclerView1;
+    private TextView _timeStampTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,35 +35,11 @@ public class MainActivity extends AppCompatActivity {
 
         initSwipeRefreshLayout();
         _recyclerView1 = findViewById(R.id.recyclerView1);
+        _timeStampTextView = findViewById(R.id.timeStampTextView);
 
         bindRecyclerView();
-//        initCurrencies();
     }
 
-//    private void initCurrencies() {
-//        String url = "https://openexchangerates.org/api/currencies.json";
-//        AsyncHttpClient ahc = new AsyncHttpClient();
-//
-//        ahc.get(url, new AsyncHttpResponseHandler() {
-//            @Override
-//            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-//                Log.d("*tw*", new String(responseBody));
-//
-//                Gson g = new Gson();
-//                String responseString = new String(responseBody);
-//
-//                Map<String, String> responseMap = g.fromJson(responseString, new TypeToken<Map<String,String>>(){}.getType());
-//                String curenncies = responseMap.get("status");
-//
-//            }
-//
-//            @Override
-//            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-//                Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_LONG).show();
-//            }
-//        });
-//
-//    }
 
     private void bindRecyclerView() {
         String url = "https://openexchangerates.org/api/latest.json?app_id=1a6ee471eb614d2a9000906ab1e0e159";
@@ -81,13 +59,17 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 JSONObject rates;
+                long timestamp;
 
                 try {
                     rates = root.getJSONObject("rates");
+                    timestamp = root.getLong("timestamp");
                 } catch (JSONException e){
                     Toast.makeText(MainActivity.this, e.getMessage(),Toast.LENGTH_SHORT).show();
                     return;
                 }
+
+                setTimestamp(timestamp);
 
                 RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(MainActivity.this);
                 ForexAdapter adapter = new ForexAdapter(rates);
@@ -103,6 +85,14 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, new String(responseBody), Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    private void setTimestamp(long timestamp) {
+        SimpleDateFormat format =   new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        format.setTimeZone(TimeZone.getTimeZone("Asia/Jakarta"));
+        String dateTime = format.format(new Date(timestamp*1000));
+
+        _timeStampTextView.setText("Tanggal dan Waktu (WIB): " + dateTime);
     }
 
     private void initSwipeRefreshLayout(){
